@@ -7,7 +7,6 @@
   },
   "deploy": {
     "restartPolicyType": "on_failure",
-    "healthcheckPath": "/api/health",
-    "startCommand": "cd backend && java -jar target/*.jar"
+    "healthcheckPath": "/api/ping"
   }
 }
