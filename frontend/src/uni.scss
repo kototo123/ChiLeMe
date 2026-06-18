@@ -1,0 +1,29 @@
+$primary-color: #5B9BD5;
+$bg-color: #F0F7FF;
+$card-bg: #FFFFFF;
+$text-primary: #333333;
+$text-secondary: #999999;
+$border-color: #F0F0F0;
+$success-color: #4CAF50;
+$warning-color: #FF9800;
+$danger-color: #F44336;
+
+@mixin card {
+  background: $card-bg;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
