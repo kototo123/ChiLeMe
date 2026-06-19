@@ -1,6 +1,7 @@
 package com.chileme.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.chileme.entity.CheckIn;
 import com.chileme.entity.RankSnapshot;
 import com.chileme.entity.User;
@@ -10,8 +11,8 @@ import com.chileme.mapper.RankSnapshotMapper;
 import com.chileme.mapper.UserMapper;
 import com.chileme.service.RankService;
 import com.chileme.vo.RankVO;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -23,31 +24,41 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class RankServiceImpl implements RankService {
 
     private final UserMapper userMapper;
     private final CheckInMapper checkInMapper;
     private final RankSnapshotMapper rankSnapshotMapper;
-    private final StringRedisTemplate redisTemplate;
+    @Autowired(required = false)
+    private StringRedisTemplate redisTemplate;
 
     private static final String RANK_ON_TIME_KEY = "rank:on_time";
     private static final String RANK_CONTINUOUS_KEY = "rank:continuous";
     private static final String RANK_SCORE_KEY = "rank:score";
 
+    public RankServiceImpl(UserMapper userMapper, CheckInMapper checkInMapper,
+                           RankSnapshotMapper rankSnapshotMapper) {
+        this.userMapper = userMapper;
+        this.checkInMapper = checkInMapper;
+        this.rankSnapshotMapper = rankSnapshotMapper;
+    }
+
     @Override
     public List<RankVO> getOnTimeRank(int topN) {
-        return getRankFromRedis(RANK_ON_TIME_KEY, topN);
+        if (redisTemplate != null) return getRankFromRedis(RANK_ON_TIME_KEY, topN);
+        return getRankFromDb(RankTypeEnum.ON_TIME, topN);
     }
 
     @Override
     public List<RankVO> getContinuousRank(int topN) {
-        return getRankFromRedis(RANK_CONTINUOUS_KEY, topN);
+        if (redisTemplate != null) return getRankFromRedis(RANK_CONTINUOUS_KEY, topN);
+        return getRankFromDb(RankTypeEnum.CONTINUOUS, topN);
     }
 
     @Override
     public List<RankVO> getScoreRank(int topN) {
-        return getRankFromRedis(RANK_SCORE_KEY, topN);
+        if (redisTemplate != null) return getRankFromRedis(RANK_SCORE_KEY, topN);
+        return getRankFromDb(RankTypeEnum.SCORE, topN);
     }
 
     @Override
@@ -60,14 +71,15 @@ public class RankServiceImpl implements RankService {
         YearMonth ym = YearMonth.now();
         LocalDate startDate = ym.atDay(1);
         LocalDate endDate = ym.atEndOfMonth();
-        String month = ym.toString();
 
         List<User> users = userMapper.selectList(
                 new LambdaQueryWrapper<User>().eq(User::getStatus, 1));
 
-        refreshOnTimeRank(users, startDate, endDate);
-        refreshContinuousRank(users);
-        refreshScoreRank(users, month);
+        if (redisTemplate != null) {
+            refreshOnTimeRank(users, startDate, endDate);
+            refreshContinuousRank(users);
+            refreshScoreRank(users);
+        }
     }
 
     private void refreshOnTimeRank(List<User> users, LocalDate startDate, LocalDate endDate) {
@@ -96,7 +108,7 @@ public class RankServiceImpl implements RankService {
         }
     }
 
-    private void refreshScoreRank(List<User> users, String month) {
+    private void refreshScoreRank(List<User> users) {
         redisTemplate.delete(RANK_SCORE_KEY);
         for (User u : users) {
             if (u.getCurrentMonthScore() > 0) {
@@ -109,6 +121,7 @@ public class RankServiceImpl implements RankService {
     @Override
     @Scheduled(cron = "0 0 2 * * ?")
     public void persistRanks() {
+        if (redisTemplate == null) return;
         persistRank(RankTypeEnum.ON_TIME.getType(), RANK_ON_TIME_KEY);
         persistRank(RankTypeEnum.CONTINUOUS.getType(), RANK_CONTINUOUS_KEY);
         persistRank(RankTypeEnum.SCORE.getType(), RANK_SCORE_KEY);
@@ -150,6 +163,32 @@ public class RankServiceImpl implements RankService {
                 vo.setNickname(user.getNickname());
                 vo.setAvatar(user.getAvatar());
                 vo.setScoreValue(score != null ? score.intValue() : 0);
+                list.add(vo);
+            }
+        }
+        return list;
+    }
+
+    private List<RankVO> getRankFromDb(RankTypeEnum type, int topN) {
+        YearMonth ym = YearMonth.now();
+        LambdaQueryWrapper<RankSnapshot> qw = new LambdaQueryWrapper<RankSnapshot>()
+                .eq(RankSnapshot::getRankType, type.getType())
+                .eq(RankSnapshot::getMonth, ym.toString())
+                .orderByAsc(RankSnapshot::getRankNum)
+                .last("LIMIT " + topN);
+        List<RankSnapshot> snapshots = rankSnapshotMapper.selectList(qw);
+        if (snapshots.isEmpty()) return List.of();
+
+        List<RankVO> list = new ArrayList<>();
+        for (RankSnapshot s : snapshots) {
+            User user = userMapper.selectById(s.getUserId());
+            if (user != null) {
+                RankVO vo = new RankVO();
+                vo.setRank(s.getRankNum());
+                vo.setUserId(user.getId());
+                vo.setNickname(user.getNickname());
+                vo.setAvatar(user.getAvatar());
+                vo.setScoreValue(s.getScoreValue());
                 list.add(vo);
             }
         }

@@ -21,6 +21,7 @@ import com.chileme.vo.CalendarVO;
 import com.chileme.vo.CheckInVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,8 @@ public class CheckInServiceImpl implements CheckInService {
     private final AIService aiService;
     private final PostService postService;
     private final RankService rankService;
-    private final StringRedisTemplate redisTemplate;
+    @Autowired(required = false)
+    private StringRedisTemplate redisTemplate;
 
     @Value("${chileme.check-in.start-time}")
     private String startTimeStr;
@@ -66,10 +68,12 @@ public class CheckInServiceImpl implements CheckInService {
     public CheckInVO checkIn(Long userId, CheckInDTO dto) {
         LocalDate today = LocalDate.now();
         String lockKey = "checkin:lock:" + userId + ":" + today;
-        Boolean locked = redisTemplate.opsForValue()
-                .setIfAbsent(lockKey, "1", 10, TimeUnit.SECONDS);
-        if (Boolean.FALSE.equals(locked)) {
-            throw new BusinessException("请勿重复提交");
+        if (redisTemplate != null) {
+            Boolean locked = redisTemplate.opsForValue()
+                    .setIfAbsent(lockKey, "1", 10, TimeUnit.SECONDS);
+            if (Boolean.FALSE.equals(locked)) {
+                throw new BusinessException("请勿重复提交");
+            }
         }
         try {
             CheckIn existing = checkInMapper.selectByUserAndDate(userId, today);
@@ -141,7 +145,9 @@ public class CheckInServiceImpl implements CheckInService {
 
             return toCheckInVO(checkIn);
         } finally {
-            redisTemplate.delete(lockKey);
+            if (redisTemplate != null) {
+                redisTemplate.delete(lockKey);
+            }
         }
     }
 
