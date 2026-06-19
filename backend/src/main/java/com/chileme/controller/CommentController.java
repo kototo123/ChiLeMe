@@ -1,11 +1,12 @@
 package com.chileme.controller;
 
 import com.chileme.common.result.Result;
+import com.chileme.dto.CommentDTO;
 import com.chileme.entity.Comment;
 import com.chileme.service.CommentService;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,11 +20,9 @@ public class CommentController {
     @PostMapping("/{postId}")
     public Result<Comment> addComment(HttpServletRequest request,
                                       @PathVariable Long postId,
-                                      @RequestParam(required = false) Long parentId,
-                                      @RequestParam(required = false) Long replyTo,
-                                      @NotBlank @RequestParam String content) {
+                                      @Valid @RequestBody CommentDTO dto) {
         Long userId = (Long) request.getAttribute("userId");
-        return Result.success(commentService.addComment(userId, postId, parentId, replyTo, content));
+        return Result.success(commentService.addComment(userId, postId, dto.getParentId(), dto.getReplyTo(), dto.getContent()));
     }
 
     @DeleteMapping("/{commentId}")
