@@ -3,7 +3,7 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "吃了么"
+        "navigationBarTitleText": "一晨一食"
       }
     },
     {
@@ -70,7 +70,7 @@
   "globalStyle": {
     "navigationStyle": "custom",
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "吃了么",
+    "navigationBarTitleText": "一晨一食",
     "navigationBarBackgroundColor": "#F0F7FF",
     "backgroundColor": "#F0F7FF",
     "enablePullDownRefresh": true

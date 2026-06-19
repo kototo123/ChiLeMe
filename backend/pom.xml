@@ -15,7 +15,7 @@
     <artifactId>chileme-backend</artifactId>
     <version>1.0.0</version>
     <name>chileme-backend</name>
-    <description>吃了么 - 早餐打卡轻社交小程序后端</description>
+    <description>一晨一食 - 早餐打卡轻社交小程序后端</description>
 
     <properties>
         <java.version>17</java.version>

@@ -1,11 +1,11 @@
 <template>
   <view class="home">
-    <NavBar title="吃了么" icon="home" />
+    <NavBar title="一晨一食" icon="home" />
     <view class="home-content">
     <view class="header" @click="rainSnacks">
       <image class="logo" src="/static/images/logo.png" mode="aspectFit"></image>
-      <text class="title">吃了么</text>
-      <text class="subtitle">一起打卡吃早餐</text>
+      <text class="title">一晨一食</text>
+      <text class="subtitle">每天早起，从早餐开始</text>
     </view>
 
     <view class="snack-rain">
@@ -43,7 +43,7 @@
       <text class="tip-text">{{ todayCheckin.aiComment }}</text>
     </view>
 
-    <view class="bottom-wave"><Icon name="sun" size="xl" /><text class="wave-text">每天早起，从早餐开始</text></view>
+    <view class="bottom-wave"><Icon name="sun" size="xl" /><text class="wave-text">一晨一食，日日坚持</text></view>
     </view>
   </view>
 </template>

@@ -1,5 +1,5 @@
 {
-  "description": "吃了么 - 早餐打卡小程序",
+  "description": "一晨一食 - 早餐打卡小程序",
   "miniprogramRoot": "./",
   "packOptions": {
     "ignore": [],

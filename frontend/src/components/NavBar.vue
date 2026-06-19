@@ -19,7 +19,7 @@ import { ref, onMounted } from 'vue'
 import Icon from '@/components/Icon.vue'
 
 const props = defineProps({
-  title: { type: String, default: '吃了么' },
+  title: { type: String, default: '一晨一食' },
   icon: { type: String, default: '' },
   showBack: { type: Boolean, default: false },
   bgColor: { type: String, default: '#F0F7FF' },
