@@ -4,6 +4,8 @@ server:
     context-path: /api
 
 spring:
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
   application:
     name: chileme-backend
 
