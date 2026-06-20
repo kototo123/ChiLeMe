@@ -71,6 +71,7 @@ public class RankServiceImpl implements RankService {
         YearMonth ym = YearMonth.now();
         LocalDate startDate = ym.atDay(1);
         LocalDate endDate = ym.atEndOfMonth();
+        String month = ym.toString();
 
         List<User> users = userMapper.selectList(
                 new LambdaQueryWrapper<User>().eq(User::getStatus, 1));
@@ -79,6 +80,84 @@ public class RankServiceImpl implements RankService {
             refreshOnTimeRank(users, startDate, endDate);
             refreshContinuousRank(users);
             refreshScoreRank(users);
+        }
+        refreshDbRanks(users, startDate, endDate, month);
+    }
+
+    private void refreshDbRanks(List<User> users, LocalDate startDate, LocalDate endDate, String month) {
+        rankSnapshotMapper.delete(new LambdaQueryWrapper<RankSnapshot>()
+                .eq(RankSnapshot::getMonth, month));
+
+        List<RankVO> onTime = computeOnTimeRank(users, startDate, endDate);
+        saveRankSnapshots(RankTypeEnum.ON_TIME.getType(), month, onTime);
+
+        List<RankVO> continuous = computeContinuousRank(users);
+        saveRankSnapshots(RankTypeEnum.CONTINUOUS.getType(), month, continuous);
+
+        List<RankVO> score = computeScoreRank(users);
+        saveRankSnapshots(RankTypeEnum.SCORE.getType(), month, score);
+    }
+
+    private List<RankVO> computeOnTimeRank(List<User> users, LocalDate startDate, LocalDate endDate) {
+        List<RankVO> list = new ArrayList<>();
+        for (User u : users) {
+            int onTimeCount = checkInMapper.countOnTimeByMonth(u.getId(), startDate, endDate);
+            int tagCount = checkInMapper.countDistinctTagsByMonth(u.getId(), startDate, endDate);
+            double score = onTimeCount * 1000.0 + tagCount;
+            if (onTimeCount > 0) {
+                RankVO vo = new RankVO();
+                vo.setUserId(u.getId());
+                vo.setScoreValue((int) score);
+                list.add(vo);
+            }
+        }
+        list.sort((a, b) -> b.getScoreValue() - a.getScoreValue());
+        int rank = 1;
+        for (RankVO vo : list) vo.setRank(rank++);
+        return list;
+    }
+
+    private List<RankVO> computeContinuousRank(List<User> users) {
+        List<RankVO> list = new ArrayList<>();
+        for (User u : users) {
+            if (u.getContinuousDays() > 0) {
+                RankVO vo = new RankVO();
+                vo.setUserId(u.getId());
+                vo.setScoreValue(u.getContinuousDays());
+                list.add(vo);
+            }
+        }
+        list.sort((a, b) -> b.getScoreValue() - a.getScoreValue());
+        int rank = 1;
+        for (RankVO vo : list) vo.setRank(rank++);
+        return list;
+    }
+
+    private List<RankVO> computeScoreRank(List<User> users) {
+        List<RankVO> list = new ArrayList<>();
+        for (User u : users) {
+            if (u.getCurrentMonthScore() > 0) {
+                RankVO vo = new RankVO();
+                vo.setUserId(u.getId());
+                vo.setScoreValue(u.getCurrentMonthScore());
+                list.add(vo);
+            }
+        }
+        list.sort((a, b) -> b.getScoreValue() - a.getScoreValue());
+        int rank = 1;
+        for (RankVO vo : list) vo.setRank(rank++);
+        return list;
+    }
+
+    private void saveRankSnapshots(String rankType, String month, List<RankVO> ranks) {
+        for (RankVO vo : ranks) {
+            RankSnapshot snapshot = new RankSnapshot();
+            snapshot.setRankType(rankType);
+            snapshot.setUserId(vo.getUserId());
+            snapshot.setScoreValue(vo.getScoreValue());
+            snapshot.setRankNum(vo.getRank());
+            snapshot.setMonth(month);
+            rankSnapshotMapper.insert(snapshot);
         }
     }
 
