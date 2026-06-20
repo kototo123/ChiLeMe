@@ -1,7 +1,9 @@
 <template>
   <view class="nav-bar" :style="{ background: bgColor }">
     <view class="nav-left">
-      <view v-if="showBack" class="nav-back" @click="goBack"><Icon name="arrowleft" size="md" /> 返回</view>
+      <view v-if="showBack" class="nav-back" @click="goBack">
+        <Icon name="arrowleft" size="md" /> 返回
+      </view>
     </view>
     <view class="nav-center">
       <Icon :name="icon" size="md" v-if="icon" />
@@ -22,7 +24,7 @@ const props = defineProps({
   title: { type: String, default: '一晨一食' },
   icon: { type: String, default: '' },
   showBack: { type: Boolean, default: false },
-  bgColor: { type: String, default: '#F0F7FF' },
+  bgColor: { type: String, default: 'transparent' },
 })
 
 const navHeight = ref(44)
@@ -47,6 +49,16 @@ function goBack() { uni.navigateBack() }
   padding: 0 16rpx;
   padding-top: var(--status-bar-height, 44px);
   height: calc(var(--status-bar-height, 44px) + 88rpx);
+  backdrop-filter: blur(20px);
+}
+.nav-bar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 32rpx;
+  right: 32rpx;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent, rgba(91,155,213,0.12), transparent);
 }
 .nav-left {
   width: 160rpx;
@@ -71,7 +83,7 @@ function goBack() { uni.navigateBack() }
 .nav-title {
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: #2C3E50;
 }
 .nav-right {
   width: 160rpx;

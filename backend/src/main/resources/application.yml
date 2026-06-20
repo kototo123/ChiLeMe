@@ -68,6 +68,8 @@ mybatis-plus:
 
 # 自定义配置
 chileme:
+  upload:
+    dir: ${CHILEME_UPLOAD_DIR:./uploads}
   check-in:
     start-time: "06:00"
     end-time: "08:30"

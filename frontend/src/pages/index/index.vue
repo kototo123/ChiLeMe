@@ -2,48 +2,57 @@
   <view class="home">
     <NavBar title="一晨一食" icon="home" />
     <view class="home-content">
-    <view class="header" @click="rainSnacks">
-      <image class="logo" src="/static/images/logo.png" mode="aspectFit"></image>
-      <text class="title">一晨一食</text>
-      <text class="subtitle">每天早起，从早餐开始</text>
-    </view>
-
-    <view class="snack-rain">
-      <view v-for="s in snacks" :key="s.id" class="snack" :style="s.style">{{ s.emoji }}</view>
-    </view>
-
-    <view class="stats-card">
-      <view class="stat-item" @click="goCheckin">
-        <Icon name="ontime" size="lg" color="green" />
-        <text class="stat-num">{{ userStore.userInfo?.currentMonthOnTime || 0 }}</text>
-        <text class="stat-label">本月准时</text>
+      <view class="header" @click="rainSnacks">
+        <view class="logo-ring">
+          <image class="logo" src="/static/images/logo.png" mode="aspectFit"></image>
+        </view>
+        <text class="title">一晨一食</text>
+        <text class="subtitle">每天早起，从早餐开始</text>
       </view>
-      <view class="stat-item">
-        <Icon name="streak" size="lg" color="orange" />
-        <text class="stat-num">{{ userStore.userInfo?.continuousDays || 0 }}</text>
-        <text class="stat-label">连续天数</text>
-      </view>
-      <view class="stat-item">
-        <Icon name="score" size="lg" color="gold" />
-        <text class="stat-num">{{ userStore.userInfo?.totalScore || 0 }}</text>
-        <text class="stat-label">总积分</text>
-      </view>
-    </view>
 
-    <view class="action-section">
-      <view class="action-btn primary" @click="goCheckin">
-        <Icon v-if="todayCheckin" name="check" size="md" />
-        <Icon v-else name="breakfast" size="md" />
-        <text>{{ todayCheckin ? '已打卡' : '去打卡' }}</text>
+      <view class="snack-rain">
+        <view v-for="s in snacks" :key="s.id" class="snack" :style="s.style">{{ s.emoji }}</view>
       </view>
-    </view>
 
-    <view class="today-tip" v-if="todayCheckin && todayCheckin.aiComment">
-      <Icon name="ai" size="md" />
-      <text class="tip-text">{{ todayCheckin.aiComment }}</text>
-    </view>
+      <view class="stats-card">
+        <view class="stat-item" @click="goCheckin">
+          <view class="stat-icon green"><Icon name="ontime" size="md" color="white" /></view>
+          <text class="stat-num">{{ userStore.userInfo?.currentMonthOnTime || 0 }}</text>
+          <text class="stat-label">本月准时</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <view class="stat-icon orange"><Icon name="streak" size="md" color="white" /></view>
+          <text class="stat-num">{{ userStore.userInfo?.continuousDays || 0 }}</text>
+          <text class="stat-label">连续天数</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <view class="stat-icon blue"><Icon name="score" size="md" color="white" /></view>
+          <text class="stat-num">{{ userStore.userInfo?.totalScore || 0 }}</text>
+          <text class="stat-label">总积分</text>
+        </view>
+      </view>
 
-    <view class="bottom-wave"><Icon name="sun" size="xl" /><text class="wave-text">一晨一食，日日坚持</text></view>
+      <view class="action-section">
+        <button class="action-btn" @click="goCheckin">
+          <Icon v-if="todayCheckin" name="check" size="md" />
+          <Icon v-else name="breakfast" size="md" />
+          <text>{{ todayCheckin ? '今日已打卡' : '去打卡' }}</text>
+        </button>
+      </view>
+
+      <view class="today-tip" v-if="todayCheckin && todayCheckin.aiComment">
+        <view class="tip-icon"><Icon name="ai" size="sm" color="#5B9BD5" /></view>
+        <view class="tip-body">
+          <text class="tip-label">AI 点评</text>
+          <text class="tip-text">{{ todayCheckin.aiComment }}</text>
+        </view>
+      </view>
+
+      <view class="bottom-section">
+        <text class="bottom-text">一晨一食 · 日日坚持</text>
+      </view>
     </view>
   </view>
 </template>
@@ -106,9 +115,11 @@ function goCheckin() {
 </script>
 
 <style lang="scss">
+@import '@/uni.scss';
+
 .home {
   min-height: 100vh;
-  background: linear-gradient(180deg, #F0F7FF 0%, #E0EEFF 100%);
+  background: $bg-gradient;
 }
 .home-content {
   display: flex;
@@ -122,13 +133,23 @@ function goCheckin() {
   flex-direction: column;
   align-items: center;
   margin-bottom: 50rpx;
+  padding: 0 32rpx;
+
+  .logo-ring {
+    width: 160rpx;
+    height: 160rpx;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(91,155,213,0.15), rgba(74,139,194,0.08));
+    @include flex-center;
+    margin-bottom: 24rpx;
+    box-shadow: 0 0 0 8rpx rgba(91,155,213,0.08);
+  }
 
   .logo {
-    width: 140rpx;
-    height: 140rpx;
-    margin-bottom: 20rpx;
+    width: 130rpx;
+    height: 130rpx;
     border-radius: 50%;
-    box-shadow: 0 8rpx 24rpx rgba(91, 155, 213, 0.3);
+    box-shadow: 0 8rpx 32rpx rgba(91, 155, 213, 0.3);
     transition: transform 0.3s;
     &:active { transform: scale(0.92); }
   }
@@ -136,7 +157,7 @@ function goCheckin() {
   .title {
     font-size: 48rpx;
     font-weight: bold;
-    background: linear-gradient(135deg, #5B9BD5, #4A8BC2);
+    background: linear-gradient(135deg, #5B9BD5, #3A7BBF);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -144,42 +165,55 @@ function goCheckin() {
 
   .subtitle {
     font-size: 26rpx;
-    color: #999;
+    color: #7F8C9B;
     margin-top: 8rpx;
   }
 }
 
 .stats-card {
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20rpx;
+  @include card;
   padding: 32rpx 16rpx;
   margin: 0 32rpx 32rpx;
   width: calc(100% - 64rpx);
   display: flex;
-  justify-content: space-around;
-  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.06);
+  align-items: center;
 
   .stat-item {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8rpx;
+    gap: 10rpx;
     padding: 8rpx 16rpx;
-    border-radius: 16rpx;
     transition: transform 0.2s;
     &:active { transform: scale(0.95); }
+  }
+
+  .stat-icon {
+    width: 64rpx;
+    height: 64rpx;
+    border-radius: 50%;
+    @include flex-center;
+    &.green { background: linear-gradient(135deg, #66BB6A, #43A047); }
+    &.orange { background: linear-gradient(135deg, #FFA726, #FB8C00); }
+    &.blue { background: linear-gradient(135deg, #5B9BD5, #3A7BBF); }
+  }
+
+  .stat-divider {
+    width: 2rpx;
+    height: 64rpx;
+    background: linear-gradient(180deg, transparent, $border, transparent);
   }
 
   .stat-num {
     font-size: 40rpx;
     font-weight: bold;
-    color: #333;
+    color: $text;
   }
 
   .stat-label {
     font-size: 22rpx;
-    color: #999;
+    color: $text-secondary;
   }
 }
 
@@ -190,51 +224,56 @@ function goCheckin() {
 }
 
 .action-btn {
-  height: 96rpx;
-  border-radius: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-  font-size: 34rpx;
-  font-weight: 600;
-  letter-spacing: 2rpx;
-  box-shadow: 0 8rpx 24rpx rgba(91, 155, 213, 0.3);
-
-  &.primary {
-    background: linear-gradient(135deg, #5B9BD5, #4A8BC2);
-    color: #fff;
-  }
+  @include btn-primary;
+  width: 100%;
+  letter-spacing: 4rpx;
+  &:active { opacity: 0.9; }
 }
 
 .today-tip {
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16rpx;
+  @include card;
+  margin: 0 32rpx 32rpx;
   padding: 24rpx 28rpx;
-  margin: 0 32rpx;
   display: flex;
-  align-items: flex-start;
-  gap: 12rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
-  border-left: 6rpx solid #5B9BD5;
+  gap: 16rpx;
+
+  .tip-icon {
+    flex-shrink: 0;
+    width: 48rpx;
+    height: 48rpx;
+    background: rgba(91,155,213,0.1);
+    border-radius: 50%;
+    @include flex-center;
+  }
+
+  .tip-body {
+    flex: 1;
+  }
+
+  .tip-label {
+    font-size: 22rpx;
+    font-weight: 600;
+    color: $primary;
+    margin-bottom: 4rpx;
+    display: block;
+  }
 
   .tip-text {
     font-size: 26rpx;
-    color: #555;
-    flex: 1;
+    color: $text-secondary;
     line-height: 1.6;
   }
 }
 
-.bottom-wave {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
+.bottom-section {
   margin-top: 48rpx;
-  padding: 16rpx 32rpx;
-  .wave-text { font-size: 24rpx; color: #bbb; }
+  padding: 16rpx 32rpx 48rpx;
+
+  .bottom-text {
+    font-size: 24rpx;
+    color: $text-muted;
+    letter-spacing: 4rpx;
+  }
 }
 
 .snack-rain {

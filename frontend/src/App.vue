@@ -10,9 +10,13 @@ onLaunch(() => {
 })
 </script>
 
-<style>
+<style lang="scss">
+@import '@/uni.scss';
+
 page {
-  background-color: #F0F7FF;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: $bg;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: $text;
+  -webkit-font-smoothing: antialiased;
 }
 </style>

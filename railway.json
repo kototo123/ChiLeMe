@@ -6,6 +6,12 @@
   },
   "deploy": {
     "restartPolicyType": "on_failure",
-    "healthcheckPath": "/api/ping"
+    "healthcheckPath": "/api/ping",
+    "volumes": [
+      {
+        "mountPath": "/app/uploads",
+        "name": "chileme-uploads"
+      }
+    ]
   }
 }

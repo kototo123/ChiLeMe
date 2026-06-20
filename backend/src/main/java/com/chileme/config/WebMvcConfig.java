@@ -4,11 +4,13 @@ import com.chileme.common.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
@@ -19,9 +21,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Value("${chileme.upload.dir:uploads}")
+    private String uploadDir;
+
     private static final List<String> EXCLUDE_PATHS = List.of(
             "/user/login", "/user/wx-login", "/ai/**"
     );
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:" + uploadDir + "/");
+    }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {

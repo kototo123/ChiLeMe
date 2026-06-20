@@ -1,84 +1,100 @@
 <template>
   <view class="checkin">
     <NavBar title="打卡" icon="checkin" />
-    <view class="checkin-content">
-      <view class="status-bar">
-        <view class="status-item" :class="{ active: tab === 'checkin' }" @click="tab = 'checkin'">
-          <Icon :name="tab === 'checkin' ? 'checkin' : 'time'" size="sm" />
+    <view class="checkin-body">
+      <view class="tab-bar">
+        <view class="tab-item" :class="{ active: tab === 'checkin' }" @click="tab = 'checkin'">
+          <Icon name="checkin" size="sm" />
           <text>打卡</text>
         </view>
-        <view class="status-item" :class="{ active: tab === 'history' }" @click="tab = 'history'">
-          <Icon :name="tab === 'history' ? 'calendar' : 'calendar'" size="sm" />
+        <view class="tab-item" :class="{ active: tab === 'history' }" @click="tab = 'history'">
+          <Icon name="calendar" size="sm" />
           <text>历史</text>
         </view>
+        <view class="tab-indicator" :class="tab === 'history' ? 'right' : 'left'"></view>
       </view>
 
-    <view v-if="tab === 'checkin'" class="checkin-content">
-      <view class="time-display">
-        <Icon name="clock" size="md" />
-        <text class="date">{{ currentDate }}</text>
-        <text class="weekday">{{ currentWeekday }}</text>
-      </view>
-
-      <view class="status-card" v-if="todayRecord">
-        <view class="status-badge" :class="statusClass">
-          <Icon :name="statusIcon(todayRecord)" size="sm" /> {{ todayRecord.statusDesc }}
-        </view>
-        <text class="breakfast-content">{{ todayRecord.content }}</text>
-        <image v-if="todayRecord.image" :src="todayRecord.image" class="preview-img" mode="aspectFill"></image>
-        <text class="ai-comment" v-if="todayRecord.aiComment"><Icon name="ai" size="sm" /> {{ todayRecord.aiComment }}</text>
-      </view>
-
-      <view class="form" v-else>
-        <view class="form-group">
-          <textarea v-model="content" placeholder="今天早餐吃了什么？" maxlength="500" class="textarea" />
+      <view v-if="tab === 'checkin'" class="checkin-tab">
+        <view class="time-display">
+          <view class="time-icon"><Icon name="clock" size="md" color="#5B9BD5" /></view>
+          <view class="time-info">
+            <text class="time-date">{{ currentDate }}</text>
+            <text class="time-weekday">{{ currentWeekday }}</text>
+          </view>
         </view>
 
-        <view class="form-group">
-          <view class="tag-list">
-            <view class="tag" v-for="tag in availableTags" :key="tag"
-              :class="{ active: selectedTags.includes(tag) }"
-              @click="toggleTag(tag)">
-              <text>{{ tagIcons[tag] || '🍽' }} {{ tag }}</text>
+        <view class="status-card" v-if="todayRecord">
+          <view class="status-badge" :class="statusClass(todayRecord)">
+            <Icon :name="statusIcon(todayRecord)" size="sm" /> {{ todayRecord.statusDesc }}
+          </view>
+          <text class="breakfast-text">{{ todayRecord.content }}</text>
+          <image v-if="todayRecord.image" :src="todayRecord.image" class="preview-img" mode="aspectFill"></image>
+          <view class="ai-comment" v-if="todayRecord.aiComment">
+            <Icon name="ai" size="sm" color="#5B9BD5" /> <text>{{ todayRecord.aiComment }}</text>
+          </view>
+        </view>
+
+        <view class="form-card" v-else>
+          <view class="form-section">
+            <textarea v-model="content" placeholder="今天早餐吃了什么？分享一下～" maxlength="500" class="textarea" />
+          </view>
+
+          <view class="form-section">
+            <text class="form-label">标签</text>
+            <view class="tag-list">
+              <view class="tag" v-for="tag in availableTags" :key="tag"
+                :class="{ active: selectedTags.includes(tag) }"
+                @click="toggleTag(tag)">
+                <text>{{ tagIcons[tag] || '🍽' }} {{ tag }}</text>
+              </view>
             </view>
           </view>
-        </view>
 
-        <view class="form-group">
-          <view class="upload-btn" @click="chooseImage">
-            <Icon name="camera" size="lg" v-if="!image" />
-            <text v-if="!image" class="upload-text">上传图片</text>
-            <image v-else :src="image" class="upload-preview" mode="aspectFill" @click="chooseImage"></image>
+          <view class="form-section">
+            <text class="form-label">图片</text>
+            <view class="upload-area" @click="chooseImage">
+              <image v-if="image" :src="image" class="upload-preview" mode="aspectFill"></image>
+              <view v-else class="upload-placeholder">
+                <Icon name="camera" size="lg" color="#B0BEC5" />
+                <text class="upload-text">添加照片</text>
+              </view>
+            </view>
           </view>
+
+          <button class="submit-btn" @click="handleCheckIn" :disabled="!content.trim()">
+            <Icon name="checkin" size="sm" /> 打卡
+          </button>
         </view>
 
-        <button class="submit-btn" @click="handleCheckIn" :disabled="!content.trim()">
-          <Icon name="checkin" size="sm" /> 打卡
+        <button class="break-card-btn" v-if="!todayRecord && userStore.userInfo?.breakCardCount > 0"
+          @click="handleBreakCard">
+          <Icon name="breakcard" size="sm" /> 使用补签卡（剩余{{ userStore.userInfo?.breakCardCount }}张）
         </button>
       </view>
 
-      <button class="break-card-btn" v-if="!todayRecord && userStore.userInfo?.breakCardCount > 0"
-        @click="handleBreakCard">
-        <Icon name="breakcard" size="sm" /> 使用补签卡 (剩余{{ userStore.userInfo?.breakCardCount }}张)
-      </button>
-    </view>
-
-    <view v-else class="history-content">
-      <view class="calendar-link" @click="goCalendar">
-        <Icon name="calendar" size="sm" /> 查看日历视图 <Icon name="arrow" size="sm" />
-      </view>
-      <view class="history-list">
-        <view class="history-item" v-for="item in historyList" :key="item.id">
-          <view class="history-header">
-            <text class="history-date">{{ item.checkDate }}</text>
-            <text class="history-status" :class="statusClass(item)"><Icon :name="statusIcon(item)" size="sm" /> {{ item.statusDesc }}</text>
+      <view v-else class="history-tab">
+        <view class="calendar-link" @click="goCalendar">
+          <Icon name="calendar" size="sm" color="#5B9BD5" /> 日历视图 <Icon name="arrow" size="sm" color="#5B9BD5" />
+        </view>
+        <view class="history-list">
+          <view class="history-item" v-for="item in historyList" :key="item.id">
+            <view class="history-top">
+              <text class="history-date">{{ item.checkDate }}</text>
+              <text class="history-status" :class="statusClass(item)">
+                <Icon :name="statusIcon(item)" size="sm" /> {{ item.statusDesc }}
+              </text>
+            </view>
+            <text class="history-text">{{ item.content }}</text>
+            <view class="history-footer">
+              <Icon name="score" size="sm" color="#5B9BD5" />
+              <text class="history-score">+{{ item.score }}分</text>
+            </view>
           </view>
-          <text class="history-text">{{ item.content }}</text>
-            <text class="history-score"><Icon name="score" size="sm" /> +{{ item.score }}分</text>
+        </view>
+        <view class="load-more" @click="loadMore" v-if="hasMore">
+          <text>加载更多</text>
         </view>
       </view>
-      <view class="load-more" @click="loadMore" v-if="hasMore">加载更多</view>
-    </view>
     </view>
   </view>
 </template>
@@ -173,7 +189,6 @@ function chooseImage() {
     count: 1,
     success: (res) => {
       image.value = res.tempFilePaths[0]
-      // TODO: upload to OSS
     }
   })
 }
@@ -209,84 +224,172 @@ function goCalendar() {
 </script>
 
 <style lang="scss">
+@import '@/uni.scss';
+
 .checkin {
   min-height: 100vh;
-  background: #F0F7FF;
+  background: $bg-gradient;
 }
 
-.status-bar {
+.tab-bar {
+  position: relative;
   display: flex;
-  background: #fff;
-  padding: 20rpx 0;
-  margin-bottom: 20rpx;
+  background: $card;
+  margin: 20rpx 32rpx;
+  border-radius: 40rpx;
+  padding: 6rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
 
-  .status-item {
+  .tab-item {
     flex: 1;
-    text-align: center;
-    font-size: 30rpx;
-    color: #999;
-    padding-bottom: 16rpx;
-    border-bottom: 4rpx solid transparent;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8rpx;
+    font-size: 26rpx;
+    color: $text-secondary;
+    padding: 16rpx 0;
+    border-radius: 34rpx;
+    z-index: 1;
+    transition: all 0.3s;
 
     &.active {
-      color: #5B9BD5;
-      border-bottom-color: #5B9BD5;
+      color: #fff;
+      font-weight: 600;
     }
+  }
+
+  .tab-indicator {
+    position: absolute;
+    top: 6rpx;
+    bottom: 6rpx;
+    width: calc(50% - 6rpx);
+    background: linear-gradient(135deg, $primary, $primary-dark);
+    border-radius: 34rpx;
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    &.left { transform: translateX(0); }
+    &.right { transform: translateX(calc(100% + 6rpx)); }
   }
 }
 
+.checkin-tab, .history-tab {
+  padding: 0 32rpx;
+}
+
 .time-display {
+  @include card;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-  padding: 40rpx 0 20rpx;
+  gap: 20rpx;
+  padding: 28rpx 32rpx;
+  margin-bottom: 24rpx;
 
-  .date { font-size: 36rpx; color: #333; font-weight: 500; }
-  .weekday { font-size: 28rpx; color: #999; }
+  .time-icon {
+    width: 72rpx;
+    height: 72rpx;
+    background: rgba(91,155,213,0.1);
+    border-radius: 50%;
+    @include flex-center;
+    flex-shrink: 0;
+  }
+
+  .time-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4rpx;
+  }
+
+  .time-date {
+    font-size: 36rpx;
+    font-weight: 600;
+    color: $text;
+  }
+
+  .time-weekday {
+    font-size: 24rpx;
+    color: $text-secondary;
+  }
 }
 
 .status-card {
-  background: #fff;
-  border-radius: 16rpx;
-  margin: 20rpx 32rpx;
+  @include card;
   padding: 32rpx;
+  margin-bottom: 24rpx;
 
   .status-badge {
     display: inline-flex;
     align-items: center;
     gap: 6rpx;
-    padding: 6rpx 20rpx;
+    padding: 8rpx 24rpx;
     border-radius: 20rpx;
     font-size: 24rpx;
-    margin-bottom: 16rpx;
+    font-weight: 500;
+    margin-bottom: 20rpx;
 
-    &.on-time { background: #E8F5E9; color: #4CAF50; }
-    &.late { background: #FFF3E0; color: #FF9800; }
-    &.break { background: #E3F2FD; color: #2196F3; }
+    &.on-time { background: #E8F5E9; color: #2E7D32; }
+    &.late { background: #FFF3E0; color: #E65100; }
+    &.break { background: #E3F2FD; color: #1565C0; }
   }
 
-  .breakfast-content { font-size: 30rpx; color: #333; display: block; margin-bottom: 16rpx; }
-  .preview-img { width: 200rpx; height: 200rpx; border-radius: 12rpx; }
-  .ai-comment { font-size: 26rpx; color: #666; display: block; margin-top: 16rpx; }
+  .breakfast-text {
+    font-size: 30rpx;
+    color: $text;
+    display: block;
+    margin-bottom: 16rpx;
+    line-height: 1.6;
+  }
+
+  .preview-img {
+    width: 200rpx;
+    height: 200rpx;
+    border-radius: 16rpx;
+    margin-bottom: 16rpx;
+  }
+
+  .ai-comment {
+    font-size: 26rpx;
+    color: $text-secondary;
+    display: flex;
+    align-items: flex-start;
+    gap: 8rpx;
+    padding-top: 16rpx;
+    border-top: 2rpx solid $border;
+    line-height: 1.6;
+  }
 }
 
-.form { margin: 20rpx 32rpx; }
+.form-card {
+  @include card;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+}
 
-.form-group { margin-bottom: 24rpx; }
+.form-section {
+  margin-bottom: 28rpx;
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.form-label {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: $text;
+  display: block;
+  margin-bottom: 16rpx;
+}
 
 .textarea {
   width: 100%;
-  height: 200rpx;
-  background: #fff;
-  border-radius: 12rpx;
+  height: 180rpx;
+  background: $bg;
+  border-radius: 16rpx;
   padding: 24rpx;
   font-size: 28rpx;
   box-sizing: border-box;
+  border: 2rpx solid transparent;
+  transition: border-color 0.2s;
+  color: $text;
+  &:focus { border-color: $primary; }
 }
 
 .tag-list {
@@ -295,106 +398,140 @@ function goCalendar() {
   gap: 16rpx;
 
   .tag {
-    padding: 10rpx 28rpx;
-    background: #f5f5f5;
+    padding: 12rpx 28rpx;
+    background: $bg;
     border-radius: 30rpx;
     font-size: 24rpx;
-    color: #666;
+    color: $text-secondary;
+    transition: all 0.2s;
 
     &.active {
-      background: #E8F0FE;
-      color: #5B9BD5;
+      background: $primary-light;
+      color: $primary;
+      font-weight: 500;
     }
   }
 }
 
-.upload-btn {
-  width: 160rpx;
-  height: 160rpx;
-  background: #f5f5f5;
-  border-radius: 16rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8rpx;
-  font-size: 24rpx;
-  color: #999;
-  border: 2rpx dashed #ddd;
+.upload-area {
+  width: 180rpx;
+  height: 180rpx;
 
-  .upload-text { font-size: 22rpx; }
+  .upload-placeholder {
+    width: 100%;
+    height: 100%;
+    background: $bg;
+    border-radius: 16rpx;
+    border: 2rpx dashed $border;
+    @include flex-center;
+    flex-direction: column;
+    gap: 8rpx;
+  }
+
+  .upload-text {
+    font-size: 22rpx;
+    color: $text-muted;
+  }
 
   .upload-preview {
     width: 100%;
     height: 100%;
-    border-radius: 12rpx;
+    border-radius: 16rpx;
   }
 }
 
 .submit-btn {
-  height: 88rpx;
-  background: linear-gradient(135deg, #5B9BD5, #4A8BC2);
-  color: #fff;
-  border-radius: 44rpx;
-  font-size: 32rpx;
-  border: none;
+  @include btn-primary;
+  width: 100%;
+  margin-top: 8rpx;
 
   &[disabled] {
-    opacity: 0.5;
+    opacity: 0.4;
   }
 }
 
 .break-card-btn {
-  margin: 20rpx 32rpx;
-  height: 72rpx;
-  background: #fff;
-  color: #5B9BD5;
-  border-radius: 36rpx;
+  width: 100%;
+  height: 80rpx;
+  background: $card;
+  color: $primary;
+  border-radius: 40rpx;
   font-size: 28rpx;
-  border: 2rpx solid #5B9BD5;
+  border: 2rpx solid rgba($primary, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  box-shadow: $card-shadow;
 }
 
 .calendar-link {
-  text-align: right;
-  padding: 20rpx 32rpx;
-  font-size: 28rpx;
-  color: #5B9BD5;
-}
-
-.history-list { margin: 0 32rpx; }
-
-.history-item {
-  background: #fff;
-  border-radius: 12rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
-}
-
-.history-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12rpx;
-}
-
-.history-date { font-size: 28rpx; color: #333; }
-
-.history-status {
-  font-size: 24rpx;
   display: flex;
   align-items: center;
-  gap: 4rpx;
-  &.on-time { color: #4CAF50; }
-  &.late { color: #FF9800; }
-  &.break { color: #2196F3; }
+  justify-content: flex-end;
+  gap: 8rpx;
+  padding: 20rpx 0;
+  font-size: 26rpx;
+  color: $primary;
 }
 
-.history-text { font-size: 26rpx; color: #666; display: block; margin-bottom: 8rpx; }
-.history-score { font-size: 24rpx; color: #5B9BD5; }
+.history-list {
+  .history-item {
+    @include card;
+    padding: 28rpx;
+    margin-bottom: 16rpx;
+  }
+
+  .history-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12rpx;
+  }
+
+  .history-date {
+    font-size: 28rpx;
+    font-weight: 500;
+    color: $text;
+  }
+
+  .history-status {
+    font-size: 24rpx;
+    display: flex;
+    align-items: center;
+    gap: 4rpx;
+    padding: 4rpx 16rpx;
+    border-radius: 16rpx;
+    &.on-time { background: #E8F5E9; color: #2E7D32; }
+    &.late { background: #FFF3E0; color: #E65100; }
+    &.break { background: #E3F2FD; color: #1565C0; }
+  }
+
+  .history-text {
+    font-size: 26rpx;
+    color: $text-secondary;
+    display: block;
+    margin-bottom: 12rpx;
+    line-height: 1.5;
+  }
+
+  .history-footer {
+    display: flex;
+    align-items: center;
+    gap: 4rpx;
+  }
+
+  .history-score {
+    font-size: 24rpx;
+    color: $primary;
+    font-weight: 500;
+  }
+}
 
 .load-more {
   text-align: center;
   padding: 32rpx;
-  font-size: 28rpx;
-  color: #999;
+  font-size: 26rpx;
+  color: $text-muted;
 }
 </style>

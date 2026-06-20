@@ -1,19 +1,27 @@
-$primary-color: #5B9BD5;
-$bg-color: #F0F7FF;
-$card-bg: #FFFFFF;
-$text-primary: #333333;
-$text-secondary: #999999;
-$border-color: #F0F0F0;
-$success-color: #4CAF50;
-$warning-color: #FF9800;
-$danger-color: #F44336;
+$primary: #5B9BD5;
+$primary-dark: #3A7BBF;
+$primary-light: #E8F0FE;
+$bg: #F0F7FF;
+$bg-gradient: linear-gradient(180deg, #F0F7FF 0%, #E0EEFF 100%);
+$card: #FFFFFF;
+$card-shadow: 0 4rpx 20rpx rgba(0,0,0,0.06);
+$card-radius: 24rpx;
+$text: #2C3E50;
+$text-secondary: #7F8C9B;
+$text-muted: #B0BEC5;
+$border: #EBEEF2;
+$success: #4CAF50;
+$warning: #FF9800;
+$danger: #F44336;
+$info: #2196F3;
+$gold: linear-gradient(135deg, #FFD700, #FFC107);
+$silver: linear-gradient(135deg, #E0E0E0, #BDBDBD);
+$bronze: linear-gradient(135deg, #CD7F32, #A0522D);
 
 @mixin card {
-  background: $card-bg;
-  border-radius: 12rpx;
-  padding: 20rpx;
-  margin: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  background: $card;
+  border-radius: $card-radius;
+  box-shadow: $card-shadow;
 }
 
 @mixin flex-center {
@@ -26,4 +34,27 @@ $danger-color: #F44336;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@mixin btn-primary {
+  height: 88rpx;
+  background: linear-gradient(135deg, $primary, $primary-dark);
+  color: #fff;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 8rpx 24rpx rgba($primary, 0.3);
+}
+
+@mixin page {
+  min-height: 100vh;
+  background: $bg-gradient;
+}
+
+@mixin section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $text;
+  padding: 16rpx 32rpx;
 }
