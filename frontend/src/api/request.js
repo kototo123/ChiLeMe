@@ -34,7 +34,8 @@ function request(url, options = {}) {
         }
       },
       fail: (err) => {
-        uni.showToast({ title: '网络错误', icon: 'none' })
+        console.error('请求失败:', JSON.stringify(err))
+        uni.showToast({ title: '网络错误: ' + (err.errMsg || ''), icon: 'none', duration: 3000 })
         reject(err)
       }
     })

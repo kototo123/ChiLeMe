@@ -30,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -47,6 +49,8 @@ public class CheckInServiceImpl implements CheckInService {
     private final RankService rankService;
     @Autowired(required = false)
     private StringRedisTemplate redisTemplate;
+
+    private static final ZoneId CST = ZoneId.of("Asia/Shanghai");
 
     @Value("${chileme.check-in.start-time}")
     private String startTimeStr;
@@ -66,7 +70,7 @@ public class CheckInServiceImpl implements CheckInService {
     @Override
     @Transactional
     public CheckInVO checkIn(Long userId, CheckInDTO dto) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(CST);
         String lockKey = "checkin:lock:" + userId + ":" + today;
         if (redisTemplate != null) {
             Boolean locked = redisTemplate.opsForValue()
@@ -83,7 +87,7 @@ public class CheckInServiceImpl implements CheckInService {
             User user = userMapper.selectById(userId);
             if (user == null) throw new BusinessException("用户不存在");
 
-            LocalTime now = LocalTime.now();
+            LocalTime now = LocalTime.now(CST);
             LocalTime startTime = LocalTime.parse(startTimeStr);
             LocalTime endTime = LocalTime.parse(endTimeStr);
 
@@ -154,7 +158,7 @@ public class CheckInServiceImpl implements CheckInService {
     @Override
     @Transactional
     public CheckInVO useBreakCard(Long userId) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(CST);
         User user = userMapper.selectById(userId);
         if (user == null) throw new BusinessException("用户不存在");
         if (user.getBreakCardCount() <= 0) throw new BusinessException("补签卡不足");
@@ -167,7 +171,7 @@ public class CheckInServiceImpl implements CheckInService {
         CheckIn checkIn = new CheckIn();
         checkIn.setUserId(userId);
         checkIn.setCheckDate(today);
-        checkIn.setCheckTime(LocalTime.now());
+        checkIn.setCheckTime(LocalTime.now(CST));
         checkIn.setStatus(CheckInStatusEnum.BREAK_CARD.getCode());
         checkIn.setContent("补签打卡");
         checkIn.setScore(0);
@@ -187,7 +191,7 @@ public class CheckInServiceImpl implements CheckInService {
 
     @Override
     public CheckInVO getTodayCheckIn(Long userId) {
-        CheckIn checkIn = checkInMapper.selectByUserAndDate(userId, LocalDate.now());
+        CheckIn checkIn = checkInMapper.selectByUserAndDate(userId, LocalDate.now(CST));
         if (checkIn == null) return null;
         return toCheckInVO(checkIn);
     }

@@ -70,7 +70,7 @@ mybatis-plus:
 chileme:
   check-in:
     start-time: "06:00"
-    end-time: "09:30"
+    end-time: "08:30"
     on-time-score: 10
     late-score: 5
     break-card-limit: 3

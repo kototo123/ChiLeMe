@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -51,11 +52,13 @@ public class ReminderServiceImpl implements ReminderService {
         return setting;
     }
 
+    private static final ZoneId CST = ZoneId.of("Asia/Shanghai");
+
     @Override
     @Scheduled(cron = "${chileme.reminder.cron}")
     public void processReminders() {
-        LocalTime now = LocalTime.now().withSecond(0).withNano(0);
-        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now(CST).withSecond(0).withNano(0);
+        LocalDate today = LocalDate.now(CST);
         DayOfWeek dow = today.getDayOfWeek();
         boolean isWeekend = dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY;
 
