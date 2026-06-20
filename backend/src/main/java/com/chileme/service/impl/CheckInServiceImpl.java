@@ -110,8 +110,6 @@ public class CheckInServiceImpl implements CheckInService {
 
             String tagsStr = dto.getTags() != null ?
                     String.join(",", dto.getTags()) : "";
-            String aiComment = aiService.generateEncouragement(dto.getContent(), dto.getTags());
-
             CheckIn checkIn = new CheckIn();
             checkIn.setUserId(userId);
             checkIn.setCheckDate(today);
@@ -121,7 +119,7 @@ public class CheckInServiceImpl implements CheckInService {
             checkIn.setImage(dto.getImage() != null ? dto.getImage() : "");
             checkIn.setTags(tagsStr);
             checkIn.setScore(score);
-            checkIn.setAiComment(aiComment);
+            checkIn.setAiComment("");
             checkInMapper.insert(checkIn);
 
             ScoreLog logEntry = new ScoreLog();
