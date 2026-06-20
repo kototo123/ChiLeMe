@@ -4,13 +4,15 @@
     <view class="profile-body">
       <view class="user-card">
         <view class="user-card-bg"></view>
-        <view class="avatar-wrap" @click="changeAvatar">
+        <view v-if="userStore.isLoggedIn" class="avatar-wrap" @click="changeAvatar">
           <image :src="userStore.userInfo?.avatar || '/static/images/default-avatar.png'" mode="aspectFill" class="avatar"></image>
           <view class="avatar-overlay">
             <Icon name="camera" size="sm" color="white" />
           </view>
         </view>
-        <text class="nickname">{{ userStore.userInfo?.nickname || '未登录' }}</text>
+        <image v-else src="/static/images/default-avatar.png" mode="aspectFill" class="avatar"></image>
+        <text v-if="userStore.isLoggedIn" class="nickname">{{ userStore.userInfo?.nickname }}</text>
+        <button v-else class="login-btn" @click="handleLogin">微信一键登录</button>
         <text class="city" v-if="userStore.userInfo?.city">{{ userStore.userInfo.city }}</text>
       </view>
 
@@ -41,6 +43,14 @@
       </view>
 
       <view class="menu-card">
+        <view class="menu-item" @click="changeAvatar">
+          <view class="menu-left">
+            <view class="menu-dot blue"><Icon name="camera" size="sm" color="white" /></view>
+            <text>更换头像</text>
+          </view>
+          <Icon name="arrow" size="sm" color="#B0BEC5" />
+        </view>
+        <view class="menu-divider"></view>
         <view class="menu-item" @click="goPage('health')">
           <view class="menu-left">
             <view class="menu-dot red"><Icon name="health" size="sm" color="white" /></view>
@@ -64,19 +74,11 @@
           </view>
           <Icon name="arrow" size="sm" color="#B0BEC5" />
         </view>
-        <view class="menu-divider"></view>
+        <view class="menu-divider" v-if="unreadCount > 0"></view>
         <view class="menu-item" v-if="unreadCount > 0" @click="goNotifications">
           <view class="menu-left">
             <view class="menu-dot orange"><Icon name="notification" size="sm" color="white" /></view>
             <text>通知（{{ unreadCount }}）</text>
-          </view>
-          <Icon name="arrow" size="sm" color="#B0BEC5" />
-        </view>
-        <template v-if="unreadCount > 0"><view class="menu-divider"></view></template>
-        <view class="menu-item logout" @click="handleLogout">
-          <view class="menu-left">
-            <view class="menu-dot red"><Icon name="logout" size="sm" color="white" /></view>
-            <text style="color:#F44336">退出登录</text>
           </view>
           <Icon name="arrow" size="sm" color="#B0BEC5" />
         </view>
@@ -126,16 +128,19 @@ function goPage(page) {
   uni.navigateTo({ url: '/pages/profile/' + page })
 }
 
-function goNotifications() {
-  uni.showModal({ title: '通知', content: '此功能开发中...' })
+async function handleLogin() {
+  try {
+    await userStore.autoLogin()
+    if (userStore.isLoggedIn) {
+      uni.showToast({ title: '登录成功', icon: 'success' })
+    }
+  } catch (e) {
+    uni.showToast({ title: '登录失败', icon: 'none' })
+  }
 }
 
-function handleLogout() {
-  uni.showModal({
-    title: '提示',
-    content: '确定退出登录吗？',
-    success: (res) => { if (res.confirm) userStore.logout() }
-  })
+function goNotifications() {
+  uni.showModal({ title: '通知', content: '此功能开发中...' })
 }
 </script>
 
@@ -204,6 +209,15 @@ function handleLogout() {
     color: $text;
     position: relative;
     z-index: 1;
+  }
+
+  .login-btn {
+    @include btn-primary;
+    width: 300rpx;
+    font-size: 28rpx;
+    position: relative;
+    z-index: 1;
+    margin-top: 8rpx;
   }
 
   .city {

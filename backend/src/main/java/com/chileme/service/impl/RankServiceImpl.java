@@ -103,15 +103,19 @@ public class RankServiceImpl implements RankService {
         for (User u : users) {
             int onTimeCount = checkInMapper.countOnTimeByMonth(u.getId(), startDate, endDate);
             int tagCount = checkInMapper.countDistinctTagsByMonth(u.getId(), startDate, endDate);
-            double score = onTimeCount * 1000.0 + tagCount;
             if (onTimeCount > 0) {
                 RankVO vo = new RankVO();
                 vo.setUserId(u.getId());
-                vo.setScoreValue((int) score);
+                vo.setScoreValue(onTimeCount);
+                vo.setTagCount(tagCount);
                 list.add(vo);
             }
         }
-        list.sort((a, b) -> b.getScoreValue() - a.getScoreValue());
+        list.sort((a, b) -> {
+            int cmp = b.getScoreValue() - a.getScoreValue();
+            if (cmp == 0) cmp = b.getTagCount() - a.getTagCount();
+            return cmp;
+        });
         int rank = 1;
         for (RankVO vo : list) vo.setRank(rank++);
         return list;
@@ -167,8 +171,8 @@ public class RankServiceImpl implements RankService {
         for (User u : users) {
             int onTimeCount = checkInMapper.countOnTimeByMonth(u.getId(), startDate, endDate);
             int tagCount = checkInMapper.countDistinctTagsByMonth(u.getId(), startDate, endDate);
-            double score = onTimeCount * 1000.0 + tagCount;
             if (onTimeCount > 0) {
+                double score = onTimeCount * 1000.0 + tagCount;
                 members.put(String.valueOf(u.getId()), score);
             }
         }
@@ -241,7 +245,7 @@ public class RankServiceImpl implements RankService {
                 vo.setUserId(user.getId());
                 vo.setNickname(user.getNickname());
                 vo.setAvatar(user.getAvatar());
-                vo.setScoreValue(score != null ? score.intValue() : 0);
+                vo.setScoreValue(score != null ? (int) (score / 1000) : 0);
                 list.add(vo);
             }
         }

@@ -9,5 +9,6 @@ public class RankVO {
     private String nickname;
     private String avatar;
     private Integer scoreValue;
+    private Integer tagCount;
     private String remark;
 }
