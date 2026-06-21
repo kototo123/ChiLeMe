@@ -73,8 +73,8 @@ chileme:
   check-in:
     start-time: "06:00"
     end-time: "08:30"
-    on-time-score: 10
-    late-score: 5
+    on-time-score: 7
+    late-score: 3
     break-card-limit: 3
   jwt:
     secret: chileme-jwt-secret-key-2026-very-strong
