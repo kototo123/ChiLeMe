@@ -17,6 +17,11 @@ public interface UserMapper extends BaseMapper<User> {
             "WHERE id = #{userId}")
     void incrementContinuousDays(Long userId);
 
+    @Update("UPDATE user SET continuous_days = continuous_days + 1, " +
+            "max_continuous_days = CASE WHEN continuous_days + 1 > max_continuous_days THEN continuous_days + 1 ELSE max_continuous_days END " +
+            "WHERE id = #{userId}")
+    void incrementContinuousDaysNoOnTime(Long userId);
+
     @Update("UPDATE user SET continuous_days = 0 WHERE id = #{userId}")
     void resetContinuousDays(Long userId);
 

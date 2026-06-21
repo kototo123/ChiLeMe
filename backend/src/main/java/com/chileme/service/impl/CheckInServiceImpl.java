@@ -184,6 +184,7 @@ public class CheckInServiceImpl implements CheckInService {
         checkInMapper.insert(checkIn);
 
         userMapper.useBreakCard(userId);
+        userMapper.incrementContinuousDaysNoOnTime(userId);
 
         ScoreLog logEntry = new ScoreLog();
         logEntry.setUserId(userId);
