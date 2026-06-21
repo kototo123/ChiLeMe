@@ -58,6 +58,9 @@ public class CheckInServiceImpl implements CheckInService {
     @Value("${chileme.check-in.end-time}")
     private String endTimeStr;
 
+    @Value("${chileme.check-in.cutoff-time:11:00}")
+    private String cutoffTimeStr;
+
     @Value("${chileme.check-in.on-time-score}")
     private int onTimeScore;
 
@@ -90,6 +93,7 @@ public class CheckInServiceImpl implements CheckInService {
             LocalTime now = LocalTime.now(CST);
             LocalTime startTime = LocalTime.parse(startTimeStr);
             LocalTime endTime = LocalTime.parse(endTimeStr);
+            LocalTime cutoffTime = LocalTime.parse(cutoffTimeStr);
 
             int status;
             int score;
@@ -98,11 +102,13 @@ public class CheckInServiceImpl implements CheckInService {
                 score = onTimeScore;
                 userMapper.incrementContinuousDays(userId);
                 user.setContinuousDays(user.getContinuousDays() + 1);
-            } else {
+            } else if (!now.isAfter(cutoffTime)) {
                 status = CheckInStatusEnum.LATE.getCode();
                 score = lateScore;
                 userMapper.resetContinuousDays(userId);
                 user.setContinuousDays(0);
+            } else {
+                throw new BusinessException("已过打卡时间（11:00截止）");
             }
             if (status == CheckInStatusEnum.ON_TIME.getCode()
                     && user.getContinuousDays() != null
