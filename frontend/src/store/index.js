@@ -15,7 +15,17 @@ export const useUserStore = defineStore('user', {
 
   actions: {
     async autoLogin() {
-      if (this.isLoggedIn) return
+      if (this.isLoggedIn) {
+        try {
+          await this.refreshUserInfo()
+          return
+        } catch (e) {
+          this.token = ''
+          this.userInfo = null
+          uni.removeStorageSync('token')
+          uni.removeStorageSync('userInfo')
+        }
+      }
       try {
         let code = 'dev_' + Date.now()
         try {

@@ -104,6 +104,14 @@ public class CheckInServiceImpl implements CheckInService {
                 userMapper.resetContinuousDays(userId);
                 user.setContinuousDays(0);
             }
+            if (status == CheckInStatusEnum.ON_TIME.getCode()
+                    && user.getContinuousDays() != null
+                    && user.getContinuousDays() % 5 == 0) {
+                userMapper.addBreakCards(userId, 1);
+                user.setBreakCardCount(user.getBreakCardCount() != null
+                        ? user.getBreakCardCount() + 1 : 1);
+            }
+
             userMapper.addScore(userId, score);
             user.setTotalScore(user.getTotalScore() + score);
             user.setCurrentMonthScore(user.getCurrentMonthScore() + score);

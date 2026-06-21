@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
             user.setMaxContinuousDays(0);
             user.setCurrentMonthOnTime(0);
             user.setCurrentMonthScore(0);
-            user.setBreakCardCount(3);
+            user.setBreakCardCount(2);
             user.setMonthlyBreakUsed(0);
             user.setStatus(1);
             userMapper.insert(user);
